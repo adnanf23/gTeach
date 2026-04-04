@@ -1,0 +1,181 @@
+// app/admin/layout.jsx
+"use client";
+
+import Cookies from "js-cookie";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import pb  from "@/lib/pocketbase";
+
+const Icon = ({ d, size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d={d} />
+  </svg>
+);
+
+const icons = {
+  overview:  "M2 2h5v5H2V2zM9 2h5v5H9V2zM2 9h5v5H2V9zM9 9h5v5H9V9z",
+  kelas:     "M2 3h12v10H2V3zM6 3v10M2 7h4",
+  guru:      "M8 2a3 3 0 100 6 3 3 0 000-6zM2 14c0-3 2.7-5 6-5s6 2 6 5",
+  siswa:     "M5 2a3 3 0 100 6 3 3 0 000-6zM1 14c0-2.5 1.8-4 4-4M11 8a2 2 0 100-4 2 2 0 000 4M14 14c0-2-1.3-3-3-3",
+  pengajaran:"M2 2h12v3H2zM4 5v9M8 5v9M12 5v9",
+  nilai:     "M2 12h2V8H2v4zM7 12h2V5H7v7zM12 12h2V2h-2v10z",
+  absensi:   "M2 3h12v10H2V3zM2 7h12M6 3V1M10 3V1",
+  settings:  "M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v2M8 13v2M1 8h2M13 8h2",
+  logout:    "M10 8H2M7 5l-3 3 3 3M12 2h2v12h-2",
+  menu:      "M2 4h12M2 8h12M2 12h12",
+  close:     "M3 3l10 10M13 3L3 13",
+  log:       "M2 2h12v12H2V2zM5 6h6M5 9h6M5 12h3",
+  agenda:     "M3 4h10v10H3V4zM3 7h10M6 2v2M10 2v2M6 10h4",
+  catatan:    "M3 2h8l3 3v11H3V2zM11 2v3h3M6 7h4M6 10h4M6 13h2",
+};
+
+const NAV = [
+  { key: "overview", label: "Overview", slug: "overview", icon: "overview", href: "/dashboard" },
+  { key: "nilai",    label: "Nilai Siswa",  slug: "nilai",    icon: "nilai",    href: "/dashboard/nilai" },
+  { key: "absensi",  label: "Absensi Siswa", slug: "absensi",  icon: "absensi",  href: "/dashboard/absensi" },
+  { key: "agenda",   label: "Agenda Pelajaran",  slug: "agenda",   icon: "agenda",   href: "/dashboard/agenda-pelajaran" },
+  { key: "catatan",  label: "Catatan Siswa", slug: "catatan",  icon: "catatan",  href: "/dashboard/catatan-siswa" },
+];  
+
+export default function AdminLayout({ children }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (pb.authStore.isValid) {
+      setUser(pb.authStore.model);
+    } else {
+      router.push("/login");
+    }
+  }, [router]);
+
+const handleLogout = () => {
+    // 1. Hapus sesi di PocketBase
+    pb.authStore.clear();
+
+    // 2. Hapus Cookie (Jika Anda menggunakan middleware/SSR)
+    Cookies.remove("pb_auth");
+
+    // 3. (Opsional) Hapus data user di state lokal layout
+    setUser(null);
+
+    // 4. Redirect ke halaman login menggunakan replace
+    // router.replace lebih baik daripada router.push untuk logout 
+    // agar user tidak bisa memencet tombol 'Back' browser untuk kembali ke admin
+    router.replace("/login");
+  };    
+
+  // Tentukan menu aktif berdasarkan pathname
+  const activeKey =
+    NAV.find((n) => pathname === n.href)?.key ||
+    NAV.find((n) => n.href !== "/dashboard" && pathname.startsWith(n.href))?.key ||
+    "overview";
+
+  const activeNav = NAV.find((n) => n.key === activeKey) || NAV[0];
+
+  const initials = user?.name
+    ? user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    : user?.username?.slice(0, 2).toUpperCase() || "AD";
+
+  return (
+    <div className="flex h-screen min-h-[600px] bg-gray-50 text-[13px] font-sans overflow-hidden text-black">
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/20 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* ── SIDEBAR ── */}
+      <aside className={`fixed lg:relative inset-y-0 left-0 z-30 w-[220px] min-w-[220px] bg-white border-r border-gray-100 flex flex-col overflow-y-auto transition-transform duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+        {/* Header sidebar */}
+        <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-gray-100">
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-gray-800 leading-tight truncate">
+               Hi, {user?.name || user?.username }!
+            </p>
+            <p className="text-[10.5px] text-gray-400">
+                {user?.kelas ? `Wali Kelas ${user.kelas}` : "Wali Kelas"}
+            </p>
+          </div>
+          <button className="ml-auto lg:hidden text-gray-400 hover:text-gray-600" onClick={() => setSidebarOpen(false)}>
+            <Icon d={icons.close} size={14} />
+          </button>
+        </div>
+
+        {/* Nav items */}
+        <div className="pt-2 pb-2 flex-1">
+          <p className="px-3 py-1 text-[10px] font-semibold text-gray-400 tracking-widest uppercase">
+            Menu Admin
+          </p>
+          {NAV.map(({ key, label, icon, href }) => {
+            const isActive = activeKey === key;
+            return (
+              <button
+                key={key}
+                onClick={() => { router.push(href); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-[6px] rounded-lg text-left text-[12.5px] transition-colors mx-1 mb-0.5 ${isActive ? "bg-[#4d8bff] text-white font-medium" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}`}
+                style={{ width: "calc(100% - 8px)" }}
+              >
+                <span className={`flex-shrink-0 ${isActive ? "text-blue-200" : "opacity-50"}`}>
+                  <Icon d={icons[icon]} />
+                </span>
+                <span className="flex-1">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer sidebar */}
+        <div className="border-t border-gray-100 p-3 flex flex-col gap-1">
+          <button
+            onClick={() => router.push("/admin/settings")}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-gray-500 hover:bg-gray-50 transition-colors w-full"
+          >
+            <span className="opacity-50"><Icon d={icons.settings} /></span>Pengaturan
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] text-red-400 hover:bg-red-50 transition-colors w-full"
+          >
+            <span className="opacity-50 text-red-400"><Icon d={icons.logout} /></span>Keluar
+          </button>
+        </div>
+      </aside>
+
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white border-b border-gray-100 h-12 flex items-center px-4 sm:px-6 gap-3 flex-shrink-0">
+          <button className="lg:hidden text-gray-500 hover:text-gray-700 flex-shrink-0" onClick={() => setSidebarOpen(true)}>
+            <Icon d={icons.menu} size={16} />
+          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[12px] text-gray-400 hidden sm:block">Admin</span>
+            <span className="text-gray-300 text-[11px] hidden sm:block">/</span>
+            <span className="text-[12px] font-semibold text-gray-700 truncate">{activeNav.label}</span>
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            {/* Role badge */}
+            <span className="hidden sm:inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+              {user?.role?.toUpperCase() || "ADMIN"}
+            </span>
+            {/* Avatar */}
+            <div className="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+              {initials}
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6">
+          <h1 className="text-[20px] sm:text-[22px] font-semibold text-gray-900 mb-5">
+            {activeNav.label}
+          </h1>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
