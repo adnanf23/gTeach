@@ -35,7 +35,7 @@ const NAV = [
   { key: "nilai",    label: "Nilai Siswa",  slug: "nilai",    icon: "nilai",    href: "/dashboard/nilai" },
   { key: "absensi",  label: "Absensi Siswa", slug: "absensi",  icon: "absensi",  href: "/dashboard/absensi" },
   { key: "agenda",   label: "Agenda Pelajaran",  slug: "agenda",   icon: "agenda",   href: "/dashboard/agenda-pelajaran" },
-  { key: "catatan",  label: "Catatan Siswa", slug: "catatan",  icon: "catatan",  href: "/dashboard/catatan-siswa" },
+  { key: "catatan",  label: "Catatan Siswa", slug: "catatan",  icon: "catatan",  href: "/dashboard/catatan" },
 ];  
 
 export default function AdminLayout({ children }) {

@@ -4,7 +4,7 @@
 import Cookies from "js-cookie";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import pb  from "@/lib/pocketbase";
+import pb from "@/lib/pocketbase";
 
 const Icon = ({ d, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor"
@@ -14,30 +14,32 @@ const Icon = ({ d, size = 14 }) => (
 );
 
 const icons = {
-  overview:  "M2 2h5v5H2V2zM9 2h5v5H9V2zM2 9h5v5H2V9zM9 9h5v5H9V9z",
-  kelas:     "M2 3h12v10H2V3zM6 3v10M2 7h4",
-  guru:      "M8 2a3 3 0 100 6 3 3 0 000-6zM2 14c0-3 2.7-5 6-5s6 2 6 5",
-  siswa:     "M5 2a3 3 0 100 6 3 3 0 000-6zM1 14c0-2.5 1.8-4 4-4M11 8a2 2 0 100-4 2 2 0 000 4M14 14c0-2-1.3-3-3-3",
-  pengajaran:"M2 2h12v3H2zM4 5v9M8 5v9M12 5v9",
-  nilai:     "M2 12h2V8H2v4zM7 12h2V5H7v7zM12 12h2V2h-2v10z",
-  absensi:   "M2 3h12v10H2V3zM2 7h12M6 3V1M10 3V1",
-  settings:  "M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v2M8 13v2M1 8h2M13 8h2",
-  logout:    "M10 8H2M7 5l-3 3 3 3M12 2h2v12h-2",
-  menu:      "M2 4h12M2 8h12M2 12h12",
-  close:     "M3 3l10 10M13 3L3 13",
+  overview: "M2 2h5v5H2V2zM9 2h5v5H9V2zM2 9h5v5H2V9zM9 9h5v5H9V9z",
+  kelas: "M2 3h12v10H2V3zM6 3v10M2 7h4",
+  guru: "M8 2a3 3 0 100 6 3 3 0 000-6zM2 14c0-3 2.7-5 6-5s6 2 6 5",
+  siswa: "M5 2a3 3 0 100 6 3 3 0 000-6zM1 14c0-2.5 1.8-4 4-4M11 8a2 2 0 100-4 2 2 0 000 4M14 14c0-2-1.3-3-3-3",
+  pengajaran: "M2 2h12v3H2zM4 5v9M8 5v9M12 5v9",
+  nilai: "M2 12h2V8H2v4zM7 12h2V5H7v7zM12 12h2V2h-2v10z",
+  absensi: "M2 3h12v10H2V3zM2 7h12M6 3V1M10 3V1",
+  settings: "M8 5a3 3 0 100 6 3 3 0 000-6zM8 1v2M8 13v2M1 8h2M13 8h2",
+  logout: "M10 8H2M7 5l-3 3 3 3M12 2h2v12h-2",
+  menu: "M2 4h12M2 8h12M2 12h12",
+  close: "M3 3l10 10M13 3L3 13",
   mapel: "M2 4.5A2.5 2.5 0 014.5 2H14v10.5a1 1 0 01-1 1H4.5A2.5 2.5 0 012 11V4.5z M2 11h12 M6 2v10",
-  log:       "M2 2h12v12H2V2zM5 6h6M5 9h6M5 12h3",
+  log: "M2 2h12v12H2V2zM5 6h6M5 9h6M5 12h3",
 };
 
 const NAV = [
-  { key: "overview",   label: "Overview",       href: "/admin",              icon: "overview" },
-  { key: "kelas",      label: "Data Kelas",      href: "/admin/kelas",        icon: "kelas" },
-  { key: "siswa",      label: "Data Siswa",      href: "/admin/siswa",        icon: "siswa" },
-  { key: "guru",       label: "Data Guru",       href: "/admin/guru",         icon: "guru" },
-  { key: "Mata Pelajaran",       label: "mapel",       href: "/admin/mapel",         icon: "mapel" },
-  { key: "pengajaran", label: "Pengajaran",      href: "/admin/pengajaran",   icon: "pengajaran" },
-  { key: "nilai",      label: "Rekap Nilai",     href: "/admin/nilai",        icon: "nilai" },
-  { key: "absensi",    label: "Rekap Absensi",   href: "/admin/absensi",      icon: "absensi" },
+  { key: "overview", label: "Overview", href: "/admin", icon: "overview" },
+  { key: "kelas", label: "Data Kelas", href: "/admin/kelas", icon: "kelas" },
+  { key: "siswa", label: "Data Siswa", href: "/admin/siswa", icon: "siswa" },
+  { key: "guru", label: "Data Guru", href: "/admin/guru", icon: "guru" },
+  { key: "Mata Pelajaran", label: "mapel", href: "/admin/mapel", icon: "mapel" },
+  { key: "pengajaran", label: "Pengajaran", href: "/admin/pengajaran", icon: "pengajaran" },
+  { key: "nilai", label: "Rekap Nilai", href: "/admin/nilai", icon: "nilai" },
+  { key: "absensi", label: "Rekap Absensi", href: "/admin/absensi", icon: "absensi" },
+  { key: "pengaturan ajaran", label: "pengaturan", href: "/admin/pengaturan-ajaran", icon: "pengaturan" },
+  { key: "cetak", label: "cetak", href: "/admin/cetak-rapor", icon: "absensi" },
 ];
 
 export default function AdminLayout({ children }) {

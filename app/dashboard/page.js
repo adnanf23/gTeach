@@ -42,8 +42,8 @@ export default function PageOverview() {
       try {
         const user = pb.authStore.model;
         if (!user || !user.kelas_id) {
-           setLoading(false);
-           return;
+          setLoading(false);
+          return;
         }
 
         const guruId = user.id;
@@ -99,35 +99,35 @@ export default function PageOverview() {
           agendaTercatat: agenda.length
         });
 
-        setBestSiswa({ nilai: topSiswaNilai, absensi: topSiswaAbsen });
+          
 
-    // --- Konfigurasi Chart Garis: Garis Biru & Poin Berwarna ---
-setAbsensiData({
-  labels: ['Hadir', 'Sakit', 'Izin', 'Alpha'],
-  datasets: [{
-    label: 'Jumlah',
-    data: [rekapAbsensi.hadir, rekapAbsensi.sakit, rekapAbsensi.izin, rekapAbsensi.alpha],
-    
-    // Konfigurasi Garis (Biru)
-    fill: true,
-    borderColor: '#3b82f6', // Biru cerah (Tailwind blue-500)
-    backgroundColor: 'rgba(59, 130, 246, 0.1)', // Biru transparan untuk area bawah
-    tension: 0.4, // Garis melengkung halus
-    borderWidth: 3, // Sedikit lebih tebal agar tegas
-    
-    // Konfigurasi Poin (Warna-warni)
-    pointBackgroundColor: [
-      '#10b981', // Hijau (Hadir)
-      '#f59e0b', // Kuning (Sakit)
-      '#3b82f6', // Biru (Izin)
-      '#ef4444'  // Merah (Alpha)
-    ],
-    pointBorderColor: '#fff',
-    pointBorderWidth: 2,
-    pointRadius: 6,
-    pointHoverRadius: 8,
-  }]
-});
+        // --- Konfigurasi Chart Garis: Garis Biru & Poin Berwarna ---
+        setAbsensiData({
+          labels: ['Hadir', 'Sakit', 'Izin', 'Alpha'],
+          datasets: [{
+            label: 'Jumlah',
+            data: [rekapAbsensi.hadir, rekapAbsensi.sakit, rekapAbsensi.izin, rekapAbsensi.alpha],
+
+            // Konfigurasi Garis (Biru)
+            fill: true,
+            borderColor: '#3b82f6', // Biru cerah (Tailwind blue-500)
+            backgroundColor: 'rgba(59, 130, 246, 0.1)', // Biru transparan untuk area bawah
+            tension: 0.3, // Garis melengkung halus
+            borderWidth: 3, // Sedikit lebih tebal agar tegas
+
+            // Konfigurasi Poin (Warna-warni)
+            pointBackgroundColor: [
+              '#10b981', // Hijau (Hadir)
+              '#f59e0b', // Kuning (Sakit)
+              '#3b82f6', // Biru (Izin)
+              '#ef4444'  // Merah (Alpha)
+            ],
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+          }]
+        });
 
       } catch (err) {
         console.error(err);
@@ -156,11 +156,11 @@ setAbsensiData({
             <h3 className="font-bold text-gray-700 mb-6 text-[11px] uppercase tracking-widest">Tren Presensi Kelas</h3>
             <div className="h-[250px]">
               {absensiData && (
-                <Line 
-                  data={absensiData} 
-                  options={{ 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                <Line
+                  data={absensiData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
                       y: {
@@ -172,7 +172,7 @@ setAbsensiData({
                         grid: { display: false }
                       }
                     }
-                  }} 
+                  }}
                 />
               )}
             </div>

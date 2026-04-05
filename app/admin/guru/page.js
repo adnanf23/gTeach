@@ -32,6 +32,8 @@ export default function AdminGuruPage() {
   const [editingGuru, setEditingGuru] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   
+  const passwordDefault = "gTeach2026"; // Password default sistem
+
   const [newGuru, setNewGuru] = useState({
     name: "", username: "", email: "", kelas_id: ""
   });
@@ -42,7 +44,6 @@ export default function AdminGuruPage() {
   const updateWaliKelasDiTabelKelas = async (kelasId, userId) => {
     if (!kelasId) return;
     try {
-      // Set guru ini sebagai wali kelas di tabel kelas terkait
       await pb.collection("kelas").update(kelasId, {
         walikelas_id: userId
       });
@@ -60,9 +61,6 @@ export default function AdminGuruPage() {
   const handleAddManual = async (e) => {
     e.preventDefault();
     try {
-      const passwordDefault = "gTeach2026";
-      
-      // 1. Simpan Guru
       const createdUser = await pb.collection("users").create({
         ...newGuru,
         password: passwordDefault,
@@ -71,7 +69,6 @@ export default function AdminGuruPage() {
         emailVisibility: true
       });
 
-      // 2. Update Walas di Tabel Kelas
       await updateWaliKelasDiTabelKelas(newGuru.kelas_id, createdUser.id);
 
       setShowAddModal(false);
@@ -95,10 +92,7 @@ export default function AdminGuruPage() {
         updateData.passwordConfirm = editingGuru.newPassword;
       }
 
-      // 1. Update Guru
       await pb.collection("users").update(editingGuru.id, updateData);
-
-      // 2. Update Walas di Tabel Kelas
       await updateWaliKelasDiTabelKelas(editingGuru.kelas_id, editingGuru.id);
 
       setEditingGuru(null);
@@ -129,7 +123,6 @@ export default function AdminGuruPage() {
         const data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
         
         for (const row of data) {
-          const pass = "gTeach2026";
           let targetKelasId = row.ID_Kelas || "";
           
           if (!targetKelasId && row.Kelas) {
@@ -137,28 +130,25 @@ export default function AdminGuruPage() {
             if (match) targetKelasId = match.id;
           }
 
-          // 1. Create User
           const createdUser = await pb.collection("users").create({
             name: row.Nama,
             username: row.Username,
             email: row.Email,
-            password: pass,
-            passwordConfirm: pass,
+            password: passwordDefault,
+            passwordConfirm: passwordDefault,
             role: "guru",
             kelas_id: targetKelasId,
             emailVisibility: true
           });
 
-          // 2. Sinkronkan ke tabel kelas
           if (targetKelasId) {
             await updateWaliKelasDiTabelKelas(targetKelasId, createdUser.id);
           }
         }
-        alert("Import Berhasil & Wali Kelas diperbarui!");
+        alert("Import Berhasil!");
         window.location.reload();
       } catch (err) { 
-        alert("Gagal Impor! Pastikan email/username belum terdaftar."); 
-        console.error(err);
+        alert("Gagal Impor!"); 
       } finally { 
         setIsImporting(false); 
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -216,8 +206,10 @@ export default function AdminGuruPage() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
-              <th className="p-4">Informasi Guru</th>
-              <th className="p-4">Kelas Wali</th>
+              <th className="p-4">Nama</th>
+              <th className="p-4">Username</th>
+              <th className="p-4">Kelas</th>
+              <th className="p-4">Password</th>
               <th className="p-4 text-right">Aksi</th>
             </tr>
           </thead>
@@ -226,12 +218,18 @@ export default function AdminGuruPage() {
               <tr key={g.id} className="text-[13px] hover:bg-gray-50/50 transition-colors">
                 <td className="p-4">
                   <div className="font-bold text-gray-800">{g.name}</div>
-                  <div className="text-[11px] text-gray-400 font-medium">@{g.username} • {g.email}</div>
+                  <div className="text-[10px] text-gray-400">{g.email}</div>
                 </td>
+                <td className="p-4 font-medium text-gray-600">@{g.username}</td>
                 <td className="p-4">
                   <span className={`px-3 py-1 rounded-full font-bold text-[10px] ${g.kelas_id ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                    {kelas.find(k => k.id === g.kelas_id)?.nama || "Bukan Walikelas"}
+                    {kelas.find(k => k.id === g.kelas_id)?.nama || "Tanpa Kelas"}
                   </span>
+                </td>
+                <td className="p-4">
+                   <code className="bg-gray-100 px-2 py-1 rounded text-[11px] text-gray-600 font-mono">
+                    {passwordDefault}
+                   </code>
                 </td>
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-1">
@@ -245,7 +243,9 @@ export default function AdminGuruPage() {
         </table>
       </div>
 
-      {/* Modal Tambah */}
+      {/* Modal Tambah & Edit tetap sama seperti sebelumnya */}
+      {/* ... (Modal Tambah Manual) */}
+      {/* ... (Modal Edit Guru) */}
       {showAddModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
@@ -254,32 +254,35 @@ export default function AdminGuruPage() {
               <button onClick={() => setShowAddModal(false)} className="text-gray-400"><Icon d={icons.close} size={18} /></button>
             </div>
             <form onSubmit={handleAddManual} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Nama Lengkap</label>
+                <input required className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]" 
+                  value={newGuru.name} onChange={e => setNewGuru({...newGuru, name: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Nama Lengkap</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Username</label>
                   <input required className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]" 
-                    value={newGuru.name} onChange={e => setNewGuru({...newGuru, name: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Username</label>
-                    <input required className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]" 
-                      value={newGuru.username} onChange={e => setNewGuru({...newGuru, username: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Pilih Kelas</label>
-                    <select className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]"
-                      value={newGuru.kelas_id} onChange={e => setNewGuru({...newGuru, kelas_id: e.target.value})}>
-                      <option value="">Tidak ada</option>
-                      {kelas.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
-                    </select>
-                  </div>
+                    value={newGuru.username} onChange={e => setNewGuru({...newGuru, username: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Email</label>
-                  <input required type="email" className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]" 
-                    value={newGuru.email} onChange={e => setNewGuru({...newGuru, email: e.target.value})} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Kelas Wali</label>
+                  <select className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]"
+                    value={newGuru.kelas_id} onChange={e => setNewGuru({...newGuru, kelas_id: e.target.value})}>
+                    <option value="">Tidak ada</option>
+                    {kelas.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
+                  </select>
                 </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Email</label>
+                <input required type="email" className="w-full mt-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px]" 
+                  value={newGuru.email} onChange={e => setNewGuru({...newGuru, email: e.target.value})} />
+              </div>
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <p className="text-[10px] text-amber-700 leading-relaxed">
+                  <strong>Info:</strong> Password otomatis diset ke <code className="font-bold">{passwordDefault}</code>
+                </p>
               </div>
               <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-[12px] mt-4">Simpan Guru</button>
             </form>
@@ -287,7 +290,6 @@ export default function AdminGuruPage() {
         </div>
       )}
 
-      {/* Modal Edit */}
       {editingGuru && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
